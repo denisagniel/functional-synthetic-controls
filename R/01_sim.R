@@ -1,3 +1,4 @@
+remotes::install_github('denisagniel/fscm')
 library(tidyverse)
 library(here)
 library(glue)
@@ -8,7 +9,7 @@ library(refund)
 library(fscm)
 library(clustermq)
 
-simfn <- function(n, m, s, k, run = 0) {
+simfn <- function(n, m, s, k, g, run = 0) {
   library(tidyverse)
   library(here)
   library(glue)
@@ -19,7 +20,7 @@ simfn <- function(n, m, s, k, run = 0) {
   library(fscm)
   library(clustermq)
   set.seed(run)
-  ds <- sim_data(n = n, m = m, sigma2 = s, delta = 1, K = k)
+  ds <- sim_data(n = n, m = m, sigma2 = s, delta = 1, K = k, gamma = g)
   
   trt_ds <- ds %>%
     select(id, trt) %>%
@@ -38,7 +39,8 @@ simfn <- function(n, m, s, k, run = 0) {
                        progfunc = 'ridge',
                        scm = TRUE)
   
-  tibble(fsc = lin_fit$sc_est,
+  tibble(n, m, s, k, g, delta = 1,
+         fsc = lin_fit$sc_est,
          afscl = lin_fit$asc_est,
          afscg = fg_fit$asc_est,
          scm_est = summary(sc_base)$average_att[1] %>% unlist,
@@ -50,16 +52,17 @@ sim_params <- expand.grid(n = c(15, 30, 50, 100),
                           m = c(11, 20, 30, 100),
                           s = c(0.1, 1, 2, 5),
                           k = c(2, 4, 8, 16),
+                          g = c(1.1, 2),
                           run = 1:1000)
 
 # tst <- sim_params %>% sample_n(2)
 # 
 # tst
 # Q_rows(tst, simfn)
-tst <- sim_params %>%
-  sample_n(1)
-tst
-with(tst, simfn(n = n, m = m, s = s, k = k))
+# tst <- sim_params %>%
+#   sample_n(1)
+# tst
+# with(tst, simfn(n = n, m = m, s = s, k = k, g= g))
 options(
   clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
