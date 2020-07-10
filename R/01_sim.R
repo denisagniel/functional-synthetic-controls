@@ -46,17 +46,20 @@ simfn <- function(n, m, s, k, run = 0) {
 }
 
 
-sim_params <- expand.grid(n = c(15, 30, 50, 100, 500),
+sim_params <- expand.grid(n = c(15, 30, 50, 100),
                           m = c(11, 20, 30, 100),
                           s = c(0.1, 1, 2, 5),
                           k = c(2, 4, 8, 16),
-                          run = 1:3)
+                          run = 1:1000)
 
 # tst <- sim_params %>% sample_n(2)
-# # 
+# 
 # tst
 # Q_rows(tst, simfn)
-
+tst <- sim_params %>%
+  sample_n(1)
+tst
+with(tst, simfn(n = n, m = m, s = s, k = k))
 options(
   clustermq.defaults = list(ptn="short",
                             log_file="Rout/log%a.log",
@@ -65,5 +68,5 @@ options(
 )
 sim_res <- Q_rows(sim_params, simfn, 
                   fail_on_error = FALSE,
-                  n_jobs = 20)
+                  n_jobs = 250)
 saveRDS(sim_res, here('results/01_sim-results.rds'))
