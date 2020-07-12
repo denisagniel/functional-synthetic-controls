@@ -64,12 +64,12 @@ sim_params <- expand.grid(n = c(15, 30, 100),
 # tst
 # with(tst, simfn(n = n, m = m, s = s, k = k, g= g))
 options(
-  clustermq.defaults = list(ptn="short",
+  clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
-                            time_amt = "12:00:00"
+                            time_amt = "48:00:00"
   )
 )
 sim_res <- Q_rows(sim_params, simfn, 
                   fail_on_error = FALSE,
-                  n_jobs = 20)
+                  n_jobs = 250)
 saveRDS(sim_res, here('results/01_sim-results.rds'))
