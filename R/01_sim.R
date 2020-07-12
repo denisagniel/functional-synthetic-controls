@@ -48,12 +48,12 @@ simfn <- function(n, m, s, k, g, run = 0) {
 }
 
 
-sim_params <- expand.grid(n = c(15, 30, 50, 100),
+sim_params <- expand.grid(n = c(15, 30, 100),
                           m = c(11, 20, 30, 100),
                           s = c(0.1, 1, 2, 5),
-                          k = c(2, 4, 8, 16),
+                          k = c(2, 8, 16),
                           g = c(1.1, 2),
-                          run = 1:1000)
+                          run = 1:5)
 
 # tst <- sim_params %>% sample_n(2)
 # 
@@ -71,5 +71,5 @@ options(
 )
 sim_res <- Q_rows(sim_params, simfn, 
                   fail_on_error = FALSE,
-                  n_jobs = 250)
+                  n_jobs = 20)
 saveRDS(sim_res, here('results/01_sim-results.rds'))
