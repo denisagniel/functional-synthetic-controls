@@ -22,6 +22,12 @@ simfn <- function(n, m, s, k, g, run = 0) {
   set.seed(run)
   ds <- sim_data(n = n, m = m, sigma2 = s, delta = 1, K = k, gamma = g)
   
+  yy <- ds %>%
+    select(id, tn, y) %>%
+    spread(tn, y) %>%
+    arrange(-id) %>%
+    select(-id) %>%
+    as.matrix
   trt_ds <- ds %>%
     select(id, trt) %>%
     unique
@@ -44,7 +50,8 @@ simfn <- function(n, m, s, k, g, run = 0) {
          afscl = lin_fit$asc_est,
          afscg = fg_fit$asc_est,
          scm_est = summary(sc_base)$average_att[1] %>% unlist,
-         ascm_est = summary(asc_base)$average_att[1] %>% unlist)
+         ascm_est = summary(asc_base)$average_att[1] %>% unlist,
+         sdid = synthdid_estimate(yy, n-1, m-1))
 }
 
 
@@ -59,10 +66,10 @@ sim_params <- expand.grid(n = c(15, 30, 100),
 # 
 # tst
 # Q_rows(tst, simfn)
-# tst <- sim_params %>%
-#   sample_n(1)
-# tst
-# with(tst, simfn(n = n, m = m, s = s, k = k, g= g))
+tst <- sim_params %>%
+  sample_n(1)
+tst
+with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = -12))
 options(
   clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
