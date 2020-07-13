@@ -53,7 +53,7 @@ sim_params <- expand.grid(n = c(15, 30, 100),
                           s = c(0.1, 1, 2, 5),
                           k = c(2, 8, 16),
                           g = c(1.1, 2),
-                          run = 1:5)
+                          run = 1:1000)
 
 # tst <- sim_params %>% sample_n(2)
 # 
