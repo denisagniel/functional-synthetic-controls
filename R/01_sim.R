@@ -8,6 +8,7 @@ library(longsurr)
 library(refund)
 library(fscm)
 library(clustermq)
+library(synthdid)
 
 simfn <- function(n, m, s, k, g, run = 0) {
   library(tidyverse)
@@ -19,6 +20,8 @@ simfn <- function(n, m, s, k, g, run = 0) {
   library(refund)
   library(fscm)
   library(clustermq)
+  library(synthdid)
+  
   set.seed(run)
   ds <- sim_data(n = n, m = m, sigma2 = s, delta = 1, K = k, gamma = g)
   
@@ -66,10 +69,10 @@ sim_params <- expand.grid(n = c(15, 30, 100),
 # 
 # tst
 # Q_rows(tst, simfn)
-tst <- sim_params %>%
-  sample_n(1)
-tst
-with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = -12))
+# tst <- sim_params %>%
+#   sample_n(1)
+# tst
+# with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = -12))
 options(
   clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
