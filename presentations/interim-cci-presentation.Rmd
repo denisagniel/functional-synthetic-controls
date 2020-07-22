@@ -1,0 +1,167 @@
+---
+title: "functional synthetic control methods"
+author: "denis agniel"
+date: "CCI seed grant presentation — july22, 2020"
+output:
+  revealjs::revealjs_presentation:
+    theme: night
+    transition: none
+    self_contained: true
+    css: slides.css
+  beamer_presentation:
+    toc: false
+    incremental: false
+---
+  
+## synthetic control methods
+
+the target of inference is
+$$
+\begin{align}
+    E\{Y_{nT}(1) - Y_{nT}(0)\},
+\end{align}
+$$
+the effect of treatment ($W_i = 1$) on observations $n$ at time $T$. 
+  
+---
+  
+## how to estimate $E\{Y_{nT}(1) - Y_{nT}(0)\}$
+
+$$
+Y_{nT} - \sum_{W_{iT} = 0} \widehat{\gamma}_iY_{iT}
+$$
+  
+<div class="fragment">
+  $$
+  \text{argmin}_{\gamma} \sum_{t=1}^{T_0} (Y_{nt} - \sum_{W_{iT} = 0} \gamma_iY_{it})^2
+  $$
+</div>
+  
+---
+
+## doubly robust version
+
+$$
+\def\Ehat{\widehat{E}}
+\def\gammahat{\widehat{\gamma}}
+\def\mhat{\widehat{m}}
+\def\bY{{\mathbf{Y}}}
+\begin{align}
+    \Ehat\{Y_{nT}(1) - Y_{nT}(0)\} &= Y_{nT} - \sum_{W_{iT} = 0} \gammahat_iY_i - \left\{\mhat(\bY_{n-T}) - \sum_{W_{iT} = 0} \gammahat_i\mhat(\bY_{i-T})\right\}\nonumber\\
+    &= \text{(SC estimator) - (estimate of bias)}\\
+    &= Y_{nT} - \mhat(\bY_{n-T}) + \sum_{W_{iT} = 0} \gammahat_i\{\mhat(\bY_{i-T}) - Y_i\}
+\end{align}
+$$
+(ben-michael, feller, and rothstein, 2018)
+
+--- 
+
+## can we adapt this to longitudinal data?
+
+instead of solving this problem:
+$$
+  \text{argmin}_{\gamma} \sum_{t=1}^{T_0} (Y_{nt} - \sum_{W_{iT} = 0} \gamma_iY_{it})^2
+$$
+  
+
+<div class="fragment">
+what if we solve this:
+  $$
+  \text{argmin}_{\gamma} \sum_{k=1}^{K} (\xi_{ik} - \sum_{W_{iT} = 0} \gamma_i\xi_{ik})^2
+  $$
+  where $\xi_{ik}$ is the $k$th functional principal component (FPC) score for the $i$th individual
+</div>
+
+--- 
+
+## fpca
+
+if we can assume that the observed values come from some smooth underlying process, $Y_{it} = \mathcal{Y}_i(t) + \epsilon_{it}$. any smooth function can be decomposed as:
+
+$$
+\mathcal{Y}_i(t) = \mu(t) + \sum_{k=1}^\infty \xi_{ik}\phi_k(t)
+$$
+
+> 1. $\mu(\cdot)$ is an overall mean for all individuals
+> 2. $\phi_k(\cdot)$ is the $k$th eigenfunction
+> 3. $\xi_{ik}$ is the FPC score
+> 4. you can select the first $K$ eigenfunctions/scores to approximate
+
+--- 
+
+## using fpca
+
+then if we plug in the smooth underlying process to the synthetic control optimization:
+$$
+  \text{argmin}_{\gamma} \sum_{t=1}^{T_0} (\mathcal{Y}_{n}(T) - \sum_{W_{iT} = 0} \gamma_i\mathcal{Y}_{i}(T))^2\\
+$$
+<div class="fragment">
+$$
+  \text{argmin}_{\gamma} \sum_{t=1}^{T_0} (\sum_{k=1}^K \xi_{nk}\phi_k(t) - \sum_{W_{iT} = 0} \gamma_i\sum_{k=1}^K \xi_{ik}\phi_k(t))^2\\
+$$
+</div>
+
+<div class="fragment">
+$$
+  \text{argmin}_{\gamma} (\sum_{k=1}^K \xi_{nk} - \sum_{W_{iT} = 0} \gamma_i\sum_{k=1}^K \xi_{ik})^2\\
+$$
+</div>
+
+--- 
+
+## estimating the mean function
+
+previous approaches have just used ridge regression or two-way fixed effects models.
+
+> - we propose to use functional regression models which enforce smoothness over the coefficients at adjacent timepoints
+
+--- 
+
+## some quick simulation results
+
+> 1. sample size $n = 30$.
+> 2. number of timepoints $m = 30$. 
+> 3. noise standard deviation $s = 1$.
+> 4. number of 'true' eigenfunctions $k = 2$.
+> 5. eigenvalue decay $g = 2$.
+
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+library(readr)
+library(dplyr)
+library(here)
+library(knitr)
+res <- read_rds(here('results/initial-sim-sum.rds'))
+
+res %>%
+  filter(n == 30, 
+         m == 30,
+         s == 1,
+         k == 2,
+         g == 2) %>%
+  transmute(method = case_when(
+    mth == 'fsc_e' ~ 'fsc (no mean model)',
+    mth == 'afscl_e' ~ 'fsc (linear mean model)',
+    mth == 'afscg_e' ~ 'fsc (GAM mean model)',
+    mth == 'scm_est_e' ~ 'original SC method',
+    mth == 'ascm_est_e' ~ 'augmented/DR SC method'
+  ),
+  bias,
+  mse) %>%
+  arrange(abs(bias)) %>% kable(digits = 3)
+```
+
+---
+
+## another simulation
+
+```
+   m       bias   mse   mad
+   <chr>  <dbl> <dbl> <dbl>
+ 1 SDID  0.0373  1.50 0.809
+ 3 FSCl  0.0376  1.55 0.831
+ 4 ASC   0.0452  1.50 0.846
+ 5 SC    0.0783  1.79 0.879
+ 8 DID   0.219   6.72 1.66 
+10 FSC   0.291   7.90 1.90 
+```
