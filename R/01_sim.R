@@ -1,5 +1,5 @@
 remotes::install_github('denisagniel/fscm')
-remotes::install_github('denisagniel/tPACE')
+# remotes::install_github('denisagniel/tPACE')
 library(tidyverse)
 library(here)
 library(glue)
@@ -46,20 +46,8 @@ simfn <- function(n, m, s, k, g, run = 0) {
   
   lin_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE)
   lw_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, wts = sdid_lw)
-  # l3_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 3))
-  # l4_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 4))
-  # l5_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 5))
-  # l6_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 6))
-  # l10_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 10))
-  # l20_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 20))
   fg_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE)
   fgw_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, wts = sdid_lw)
-  # fg3_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 3))
-  # fg4_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 4))
-  # fg5_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 5))
-  # fg6_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 6))
-  # fg10_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 10))
-  # fg20_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 20))
   liny_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, include_y = TRUE)
   sc_base <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
                       progfunc = 'None',
@@ -95,11 +83,11 @@ sim_params <- expand.grid(n = c(15, 30, 100),
 # tst <- sim_params %>% sample_n(2)
 # 
 # tst
-# Q_rows(tst, simfn)
+# Q_rows(tst, simfn, n_jobs = 1)
 # tst <- sim_params %>%
 #   sample_n(1)
 # tst
-# with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = -12))
+# with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = run)) %>% data.frame
 options(
   clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
