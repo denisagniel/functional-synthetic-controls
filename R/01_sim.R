@@ -1,4 +1,5 @@
 remotes::install_github('denisagniel/fscm')
+remotes::install_github('denisagniel/tPACE')
 library(tidyverse)
 library(here)
 library(glue)
@@ -39,8 +40,27 @@ simfn <- function(n, m, s, k, g, run = 0) {
   post_ds <- ds %>%
     filter(tt == 10)
   
+  sdid <- synthdid_estimate(yy, n-1, m-1)
+  sdid_w <- attr(sdid, 'weights')
+  sdid_lw <- sdid_w$lambda
+  
   lin_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE)
+  lw_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, wts = sdid_lw)
+  # l3_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 3))
+  # l4_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 4))
+  # l5_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 5))
+  # l6_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 6))
+  # l10_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 10))
+  # l20_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, fpc_optns = list(methodSelectK = 20))
   fg_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE)
+  fgw_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, wts = sdid_lw)
+  # fg3_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 3))
+  # fg4_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 4))
+  # fg5_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 5))
+  # fg6_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 6))
+  # fg10_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 10))
+  # fg20_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = FALSE, fpc_optns = list(methodSelectK = 20))
+  liny_fit <- fsc(id, trt, tn, y, pre_ds, post_ds, linear = TRUE, include_y = TRUE)
   sc_base <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
                       progfunc = 'None',
                       scm = TRUE)
@@ -49,18 +69,25 @@ simfn <- function(n, m, s, k, g, run = 0) {
                        scm = TRUE)
   
   tibble(n, m, s, k, g, delta = 1,
-         fsc = lin_fit$sc_est,
-         afscl = lin_fit$asc_est,
-         afscg = fg_fit$asc_est,
-         scm_est = summary(sc_base)$average_att[1] %>% unlist,
-         ascm_est = summary(asc_base)$average_att[1] %>% unlist,
-         sdid = synthdid_estimate(yy, n-1, m-1))
+                       fsc = lin_fit$sc_est,
+                       fscw = lw_fit$sc_est,
+                       afscl = lin_fit$asc_est,
+                       afsclw = lw_fit$asc_est,
+                       afscg = fg_fit$asc_est,
+                       afscgw = fgw_fit$asc_est,
+                       afscy = liny_fit$asc_est,
+                       scm = summary(sc_base)$average_att[1] %>% unlist,
+                       ascm = summary(asc_base)$average_att[1] %>% unlist,
+                       scm2 = sc_estimate(yy, n-1, m-1),
+                       did = did_estimate(yy, n-1, m-1),
+                       sdid = synthdid_estimate(yy, n-1, m-1),
+  )
 }
 
 
 sim_params <- expand.grid(n = c(15, 30, 100),
-                          m = c(11, 20, 30, 100),
-                          s = c(0.1, 1, 2, 5),
+                          m = c(11, 25, 50, 100),
+                          s = c(0.01, 0.1, 0.2),
                           k = c(2, 8, 16),
                           g = c(1.1, 2),
                           run = 1:1000)
