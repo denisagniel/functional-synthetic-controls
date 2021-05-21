@@ -100,10 +100,10 @@ sim_params <- expand.grid(n = c(15, 30, 100),
 # # 
 # tst
 # Q_rows(tst, simfn, n_jobs = 1)
-tst <- sim_params %>%
-  sample_n(1)
-tst
-with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = run)) %>% data.frame
+# tst <- sim_params %>%
+#   sample_n(1)
+# tst
+# with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = run)) %>% data.frame
 options(
   clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
