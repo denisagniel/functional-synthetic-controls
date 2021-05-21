@@ -1,4 +1,5 @@
 remotes::install_github('denisagniel/fscm')
+remotes::install_github('denisagniel/augsynth')
 # remotes::install_github('denisagniel/tPACE')
 library(tidyverse)
 library(here)
@@ -56,9 +57,9 @@ simfn <- function(n, m, s, k, g, run = 0) {
   # asc_ci <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
   #                      progfunc = 'causalimpact',
   #                      scm = TRUE)
-  asc_mcp <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
-                      progfunc = 'mcp',
-                      scm = TRUE)
+  # asc_mcp <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
+  #                     progfunc = 'mcp',
+  #                     scm = TRUE)
   asc_gam <- augsynth(form = y ~ trt, unit = id, time = tn, data = ds, t_int = m,
                       progfunc = 'gam',
                       scm = TRUE)
@@ -72,12 +73,12 @@ simfn <- function(n, m, s, k, g, run = 0) {
                        scm = augsynth:::quick_att(sc_base),
                        ascm_r = augsynth:::quick_att(asc_base),
                        # ascm_gs = augsynth:::quick_att(asc_gsyn),
-                       ascm_mcp = augsynth:::quick_att(asc_mcp),
+                       # ascm_mcp = augsynth:::quick_att(asc_mcp),
                        ascm_cits = augsynth:::quick_att(asc_cits),
                        # ascm_ci = augsynth:::quick_att(asc_ci),
                        # scm2 = sc_estimate(yy, n-1, m-1),
                        # did = did_estimate(yy, n-1, m-1),
-                       sdid = sdid,
+                       sdid = as.numeric(sdid),
                        fsc = lin_fit$sc_est,
                        fscw = lw_fit$sc_est,
                        afscl = lin_fit$asc_est,
@@ -96,13 +97,13 @@ sim_params <- expand.grid(n = c(15, 30, 100),
                           run = 1:500)
 
 # tst <- sim_params %>% sample_n(2)
-# 
+# # 
 # tst
 # Q_rows(tst, simfn, n_jobs = 1)
-# tst <- sim_params %>%
-#   sample_n(1)
-# tst
-# with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = run)) %>% data.frame
+tst <- sim_params %>%
+  sample_n(1)
+tst
+with(tst, simfn(n = n, m = m, s = s, k = k, g= g, run = run)) %>% data.frame
 options(
   clustermq.defaults = list(ptn="medium",
                             log_file="Rout/log%a.log",
